@@ -1,0 +1,11 @@
+.gradle/
+build/
+app/build/
+local.properties
+build.log
+clean.log
+body.log
+*.pyc
+__pycache__/
+ui_token.txt
+settings.json

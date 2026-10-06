@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dipanwita Bot</string>
+    <string name="fg_title">দীপান্বিতা</string>
+    <string name="fg_text">ব্যাকগ্রাউন্ডে চলছে</string>
+    <string name="loading">লোড হচ্ছে…</string>
+    <string name="start_failed">চালু হয়নি। অ্যাপ বন্ধ করে আবার খুলুন।</string>
+    <string name="pick_title">ফাইল বেছে নিন</string>
+</resources>
