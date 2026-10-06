@@ -59,6 +59,8 @@ class H(BaseHTTPRequestHandler):
             return self._out({"ok": True})
         if p == "/api/pick":
             open(os.path.join(_priv, "pick_request"), "w").write(str(d.get("purpose") or "file")[:10]); return self._out({"ok": True})
+        if p == "/api/quit":
+            open(os.path.join(_priv, "quit_request"), "w").write("1"); return self._out({"ok": True})
         if p == "/api/upload": return self._out(engine.send_file(d.get("name"), d.get("path")))
         if p == "/api/avatar_set": return self._out(engine.avatar_set(d.get("data")))
         if p == "/api/avatar_clear": return self._out(engine.avatar_clear())

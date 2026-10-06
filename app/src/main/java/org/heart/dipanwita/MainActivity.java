@@ -3,6 +3,7 @@ package org.heart.dipanwita;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -63,7 +64,8 @@ public class MainActivity extends Activity {
         wv.loadData("<body style='background:#121214;color:#999;font-family:sans-serif;text-align:center;padding-top:40vh'>"
                 + getString(R.string.loading) + "</body>", "text/html; charset=utf-8", "UTF-8");
 
-        if (Build.VERSION.SDK_INT >= 33) {
+        if (Build.VERSION.SDK_INT >= 33
+                && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 1);
         }
 
@@ -171,6 +173,12 @@ public class MainActivity extends Activity {
         public void run() {
             if (destroyed) return;
             try {
+                File q = new File(getFilesDir(), "quit_request");
+                if (q.exists()) {
+                    q.delete();
+                    quitApp();
+                    return;
+                }
                 File f = new File(getFilesDir(), "pick_request");
                 if (f.exists()) {
                     String p = new String(readAll(new FileInputStream(f), 100), "UTF-8").trim();
@@ -285,6 +293,18 @@ public class MainActivity extends Activity {
         }
     }
 
+    // সেটিংস → "অ্যাপ বন্ধ করো": সার্ভিস ও Python সহ পুরো অ্যাপ বন্ধ
+    private void quitApp() {
+        try {
+            Intent i = new Intent(this, BotService.class);
+            i.setAction(BotService.ACTION_STOP);
+            startService(i);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        finishAndRemoveTask();
+    }
+
     @Override
     public void onBackPressed() {
         if (wv != null && wv.canGoBack()) wv.goBack();
@@ -294,6 +314,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         destroyed = true;
+        ui.removeCallbacksAndMessages(null);
+        if (wv != null) { wv.destroy(); wv = null; }
         super.onDestroy();
     }
 }

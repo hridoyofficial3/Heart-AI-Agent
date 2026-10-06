@@ -20,14 +20,15 @@ public class Notifier {
         NotificationManager nm = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
         nm.createNotificationChannel(new NotificationChannel("msgs", "Messages", NotificationManager.IMPORTANCE_DEFAULT));
         Intent launch = ctx.getPackageManager().getLaunchIntentForPackage(ctx.getPackageName());
-        PendingIntent pi = PendingIntent.getActivity(ctx, 0, launch, PendingIntent.FLAG_IMMUTABLE);
-        Notification n = new Notification.Builder(ctx, "msgs")
+        Notification.Builder nb = new Notification.Builder(ctx, "msgs")
                 .setContentTitle(title)
                 .setContentText(text)
                 .setAutoCancel(true)
-                .setSmallIcon(R.drawable.ic_launcher)
-                .setContentIntent(pi)
-                .build();
+                .setSmallIcon(R.drawable.ic_launcher);
+        if (launch != null) {
+            nb.setContentIntent(PendingIntent.getActivity(ctx, 0, launch, PendingIntent.FLAG_IMMUTABLE));
+        }
+        Notification n = nb.build();
         nm.notify((int) (System.currentTimeMillis() % 100000) + 10, n);
     }
 }

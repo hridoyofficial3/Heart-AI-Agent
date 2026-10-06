@@ -265,6 +265,9 @@ def _route(t):
     if t == "/start": return say("হ্যালো!! /help লিখো।")
     if t == "/help":
         return say("\n".join(l for l in bot.cmd_help().split("\n") if not any(w in l for w in ("ছবি", "ফাইল", "জিপ"))) + "\n• + বাটন → 📎 ছবি/ফাইল — ছবি, PDF, zip, লেখা বা কোড পাঠাও")
+    if t in ("ডেটা ইমপোর্ট", "ডেটা ইমপোর্ট করো", "স্মৃতি ইমপোর্ট"):
+        S["import"] = True
+        return say("ঠিক আছে!! নিচে + বাটন → 📎 থেকে পুরোনো ডেটার zip-টা বেছে নাও (যেমন agent-data.zip)। শুধু স্মৃতি-ফাইল নেব, API key বা কোড নয়।")
     if t == "/memory": return say(bot.load_memory().get("summary") or "দীর্ঘমেয়াদি স্মৃতি এখনো জমেনি।")
     if t == "/resetmemory": bot.save_json(bot.MEMORY_FILE, {"summary": ""}); return say("স্মৃতি মুছে দিলাম!!")
     if t == "/clear": return say(clear())
@@ -343,6 +346,34 @@ def _file_text(name, data):
         return data.decode("utf-8", "ignore")
     return "ERR:এই ধরনের ফাইল পড়তে পারি না। ছবি, PDF, zip বা লেখার ফাইল পাঠাও।"
 
+# ---- পুরোনো Termux বটের স্মৃতি-ডেটা অ্যাপে আনা (zip থেকে, শুধু নিচের তালিকার ফাইল)
+IMPORT_OK = ("memory.json", "profile.json", "relation.json", "rules.json", "reminders.json", "targets.json",
+             "interests.txt", "notes.txt", "words.txt", "mood.txt", "books.txt", "dreams.txt",
+             "diary.txt", "auto_diary.txt", "forgotten.txt")
+
+def import_data(data):
+    """zip-এর ভেতর থেকে শুধু IMPORT_OK-র ফাইল বসায়। আগের ফাইল থাকলে .bak করে রাখে। ফেরত: (আনা, বাদ)"""
+    done, skipped = [], []
+    with zipfile.ZipFile(io.BytesIO(data)) as z:
+        for i in z.infolist():
+            if i.is_dir(): continue
+            fn = os.path.basename(i.filename)                      # পাথ নয়, শুধু ফাইলের নাম — zip-slip ঠেকায়
+            if fn not in IMPORT_OK: continue
+            if i.file_size > 2_000_000: skipped.append(fn + " (বড়)"); continue
+            raw = z.read(i)
+            try:
+                txt = raw.decode("utf-8")
+                if fn.endswith(".json"): json.loads(txt)           # নষ্ট json ঢুকবে না
+            except Exception: skipped.append(fn + " (পড়া গেল না)"); continue
+            dst = os.path.join(bot.BASE, fn)
+            os.makedirs(bot.BASE, exist_ok=True)
+            if os.path.exists(dst):
+                try: os.replace(dst, dst + ".bak")
+                except OSError: pass
+            with open(dst, "w", encoding="utf-8") as f: f.write(txt)
+            done.append(fn)
+    return done, skipped
+
 def send_file(name, path):
     name = os.path.basename(str(name or "ফাইল"))[:80]
     real = os.path.realpath(str(path or ""))
@@ -358,6 +389,15 @@ def _handle_file(name, path, sid):
         try:
             if os.path.getsize(path) > 8_000_000: return say("ফাইলটা অনেক বড় (৮MB-র বেশি)। ছোট করে পাঠাও।")
             data = open(path, "rb").read(); ext = os.path.splitext(name.lower())[1]
+            if S.get("import"):                                     # "ডেটা ইমপোর্ট" লেখার পর পাঠানো zip
+                S["import"] = False
+                if ext != ".zip": return say("এটা zip না। পুরোনো ডেটার zip বেছে নিতে আবার লেখো: ডেটা ইমপোর্ট")
+                try: done, skipped = import_data(data)
+                except zipfile.BadZipFile: return say("zip-টা খোলা গেল না।")
+                if not done: return say("zip-এ চেনা কোনো স্মৃতি-ফাইল পেলাম না (memory.json, profile.json, relation.json ইত্যাদি)।")
+                msg = "পুরোনো স্মৃতি ফিরিয়ে আনলাম!! আনা হলো: " + ", ".join(done)
+                if skipped: msg += "\nবাদ গেছে: " + ", ".join(skipped)
+                return say(msg + "\n(আগের ফাইল থাকলে .bak নামে রাখা আছে।) এখন /memory বা 'প্রোফাইল' লিখে দেখো।")
             if not bot.PROVIDERS: return say("আগে সেটিংস → API key ম্যানেজার থেকে একটা API key যোগ করো, তারপর ফাইল দেখব!!")
             if ext in IMG:
                 if len(data) > 3_000_000: return say("ছবিটা অনেক বড়, একটু ছোট করে পাঠাও।")

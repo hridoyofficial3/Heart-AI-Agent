@@ -147,6 +147,7 @@ html.hasav .pf{background:var(--avu) center/cover no-repeat;border-radius:50%;bo
 <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 01-12 0c0-4.5 6-11 6-11z"/></symbol>
 <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3"/></symbol>
 <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 114 2c-1 .7-1.5 1.2-1.5 2.5M12 17h.01"/></symbol>
+<symbol id="i-power" viewBox="0 0 24 24"><path d="M12 3v9M6.3 6.8a8 8 0 1 0 11.4 0"/></symbol>
 <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
 <symbol id="i-mem" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/></symbol>
 <symbol id="i-note" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM15 3v4h4M9 12h6M9 16h6"/></symbol>
@@ -209,6 +210,9 @@ html.hasav .pf{background:var(--avu) center/cover no-repeat;border-radius:50%;bo
     <div class="grp">
       <button class="it" id="s-mem"><i data-i="mem"></i><span class="t">স্মৃতি দেখো</span></button>
       <button class="it red" id="s-clr"><i data-i="trash"></i><span class="t">এই চ্যাট মুছে ফেলো</span></button>
+    </div>
+    <div class="grp">
+      <button class="it red" id="s-quit"><i data-i="power"></i><span class="t">অ্যাপ বন্ধ করো<small>ব্যাকগ্রাউন্ড ও নোটিফিকেশনও বন্ধ হবে</small></span></button>
     </div>
   </div>
 </section>
@@ -499,6 +503,9 @@ $("#s-theme").onclick=()=>nav("theme");$("#s-keys").onclick=()=>nav("adv");$("#s
 $("#k-help").onclick=()=>nav("guide");$("#ban-go").onclick=()=>nav("adv");
 $("#s-mem").onclick=()=>{history.back();setTimeout(()=>send("/memory"),250)};
 $("#s-clr").onclick=async()=>{if(await ask("এই চ্যাট মুছে ফেলবে?")){await api("/api/clear",{});history.back();poll()}};
+$("#s-quit").onclick=async()=>{if(DEMO){toast("ডেমো মোডে বন্ধ করা যায় না");return}
+  if(await ask("অ্যাপ পুরোপুরি বন্ধ করবে? বট আর ব্যাকগ্রাউন্ডে চলবে না, নোটিফিকেশনও আসবে না। আবার খুললে চালু হবে।")){
+    toast("বন্ধ হচ্ছে…");try{await api("/api/quit",{},4000)}catch(e){}}};
 $("#av").onclick=()=>nav("settings");
 
 /* ড্রয়ার ও শিট */
