@@ -24,7 +24,7 @@ public class Notifier {
                 .setContentTitle(title)
                 .setContentText(text)
                 .setAutoCancel(true)
-                .setSmallIcon(R.drawable.ic_launcher);
+                .setSmallIcon(R.drawable.ic_notify);
         if (launch != null) {
             nb.setContentIntent(PendingIntent.getActivity(ctx, 0, launch, PendingIntent.FLAG_IMMUTABLE));
         }

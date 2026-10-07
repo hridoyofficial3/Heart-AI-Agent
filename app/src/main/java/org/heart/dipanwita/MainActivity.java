@@ -17,6 +17,7 @@ import android.os.ParcelFileDescriptor;
 import android.os.PowerManager;
 import android.provider.OpenableColumns;
 import android.provider.Settings;
+import android.util.Base64;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
@@ -61,8 +62,7 @@ public class MainActivity extends Activity {
         WebView.setWebContentsDebuggingEnabled(false);
         wv.setBackgroundColor(Color.parseColor("#121214"));
         setContentView(wv);
-        wv.loadData("<body style='background:#121214;color:#999;font-family:sans-serif;text-align:center;padding-top:40vh'>"
-                + getString(R.string.loading) + "</body>", "text/html; charset=utf-8", "UTF-8");
+        showPage(getString(R.string.loading), "#999");
 
         if (Build.VERSION.SDK_INT >= 33
                 && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
@@ -79,6 +79,21 @@ public class MainActivity extends Activity {
         startForegroundService(new Intent(this, BotService.class));
         waitAndLoad();
         ui.postDelayed(pickPoller, 500);
+    }
+
+    // লোডিং/ব্যর্থ পাতায় লোগো + বার্তা
+    private void showPage(String msg, String color) {
+        if (wv == null) return;
+        String img = "";
+        try {
+            byte[] b = readAll(getAssets().open("logo_small.jpg"), 200000);
+            img = "<img src='data:image/jpeg;base64," + Base64.encodeToString(b, Base64.NO_WRAP)
+                    + "' style='width:132px;height:132px;border-radius:50%;display:block;margin:0 auto 18px'>";
+        } catch (Exception ignored) { }
+        String html = "<html><head><meta name='viewport' content='width=device-width,initial-scale=1'></head>"
+                + "<body style='margin:0;background:#121214;color:" + color + ";font-family:sans-serif;text-align:center;padding:24vh 20px 0'>"
+                + img + msg + "</body></html>";
+        wv.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
     }
 
     private String ensureToken() throws IOException {
@@ -146,8 +161,7 @@ public class MainActivity extends Activity {
                                 public void run() { askBattery(); }
                             }, 3000);
                         } else {
-                            wv.loadData("<body style='background:#121214;color:#ccc;font-family:sans-serif;text-align:center;padding:40vh 20px 0'>"
-                                    + getString(R.string.start_failed) + "</body>", "text/html; charset=utf-8", "UTF-8");
+                            showPage(getString(R.string.start_failed), "#ccc");
                         }
                     }
                 });

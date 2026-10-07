@@ -39,12 +39,12 @@ public class BotService extends Service {
         Intent stop = new Intent(this, BotService.class).setAction(ACTION_STOP);
         PendingIntent stopPi = PendingIntent.getService(this, 1, stop, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         Notification.Action stopAct = new Notification.Action.Builder(
-                Icon.createWithResource(this, R.drawable.ic_launcher), getString(R.string.fg_stop), stopPi).build();
+                Icon.createWithResource(this, R.drawable.ic_notify), getString(R.string.fg_stop), stopPi).build();
 
         Notification.Builder nb = new Notification.Builder(this, "bot_fg")
                 .setContentTitle(getString(R.string.fg_title))
                 .setContentText(getString(R.string.fg_text))
-                .setSmallIcon(R.drawable.ic_launcher)
+                .setSmallIcon(R.drawable.ic_notify)
                 .setOngoing(true)
                 .addAction(stopAct);
         Intent launch = getPackageManager().getLaunchIntentForPackage(getPackageName());
